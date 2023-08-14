@@ -1,0 +1,46 @@
+Câu 1:
+Cho 1 hệ thống nhiều client chat với 1 con bot (như chat GPT). 
+Đề 1 => hệ thống server nên sử dụng mô hình nào trong 3 mô hình sau và giải thích: thread per connection, thread per object, thread per request
+Đề 2 => Tương tự đề 1 nhưng yêu cầu là sử dụng mô hình nào để performance đạt tốc độ nhanh nhất
+
+Đề 1: Trong trường hợp của một hệ thống chat với nhiều client và một bot, mô hình "thread per connection" có thể là lựa chọn tốt nhất. Mỗi kết nối từ một client sẽ được xử lý bởi một thread riêng biệt, điều này giúp cho việc xử lý đồng thời nhiều yêu cầu từ các client khác nhau trở nên dễ dàng hơn. Nếu 1 connection bị hỏng, các connection user khác k bị ảnh hưởng. 
+=> Còn kiểu thread per object là nhiều users dùng chung I/O và tương tác với chatbot thì k ổn vì cần sự độc lập.
+
+Đề 2: Để đạt được hiệu suất tốt nhất, mô hình "thread per request" có thể là lựa chọn tốt nhất. Mô hình này tạo ra một thread mới cho mỗi yêu cầu, điều này cho phép hệ thống xử lý nhiều yêu cầu cùng một lúc và tăng tốc độ phản hồi. Tuy nhiên, cần lưu ý rằng việc quản lý nhiều thread có thể tốn kém về mặt tài nguyên hệ thống, vì vậy cần cân nhắc kỹ lưỡng khi sử dụng mô hình này. Còn thread per connection xử lý chậm hơn thread per request vì 1 connection có 1 nghìn request cùng lúc thì sẽ tuần tự cả 1000 request đó chứ kp luôn song song như thread per request.
+
+ 
+
+Câu 2: 
+Xét 1 hệ thống phân tán có moving entities. Các entities sẽ di chuyển tới các địa điểm khác nhau liên tục trong mỗi khoảng thời gian ngắn trước khi tới đích (destination). Giả sử việc 1 entity truyền thông tin về địa điểm hiện tại của nó tới node Home là rất hao phí (expensive). Giải pháp cho vấn đề này là sử dụng Home-based kết hợp với forwarding pointer. Hãy giải thích cơ chế hoạt động dùng 2 giải pháp này để giải quyết vấn đề.
+Đó là đề 1. Đề 2 là sử dụng Forwarding pointer kết hợp mô hình cây (Hierarchy)
+
+Dùng kết hợp homebase và forwarding pointer ez. Để địa chỉ ở home, còn khi entities move sẽ dể lại pointer ở vị trí cũ
+
+Mô hình cây (Hierarchy): Trong mô hình này, các entity được tổ chức theo cấu trúc cây, với node Home ở gốc. Khi một entity di chuyển, nó sẽ cập nhật vị trí mới của mình tới node cha trong cây. Node cha này sau đó sẽ cập nhật thông tin này lên node cha của nó, và quá trình này tiếp tục cho đến khi thông tin về vị trí mới của entity đến được node Home. Mô hình này giúp giảm bớt số lượng thông tin cần truyền đi, do chỉ cần cập nhật thông tin tới node cha thay vì truyền thông tin về vị trí mới của mình tới tất cả các node khác trong hệ thống.
+
+
+
+Câu 3:
+Trong 1 hệ thống có nhiều tiến trình. Các tiến trình đồng bộ đồng hồ vật lý với nhau bằng 1 cơ chế. Ví dụ:
+Process P gửi 1 message tới process Q. 
+Process Q xử lý rồi gửi trả process P kèm với trường timestamp Tq
+Process P update đồng hồ của nó thành: Tp = Tq + (RTT/2) với RTT là route trip time là tổng thời gian message truyền đi và gửi lại về P
+a) Giá trị Tp có hoàn toàn là stable không (tôi hiểu là mỗi lần update là cộng lên 1 khoảng thời gian như nhau hay không ấy)? Giải thích tại sao
+b) Nếu không thì công thức phải là Tp = Tq + (RTT/2) +- delta  với delta là độ lệch (deviation) => xác định delta. Trong công thức tính delta chỉ được chứa RTT và "min" với "min" là giá trị nhỏ nhất để truyền tin theo 1 hướng 
+
+a) Không stable vì thời gian gửi đi và nhận về có thể khác nhau và thay đổi ở mỗi lần chạy tùy vào trạng thái hệ thống bận hay rảnh
+b) delta = RTT/2 - min
+
+
+
+Câu 4: Cho sơ đồ như hình: 
+Giả sử ban đầu chưa có tin gì. Server 3 tạo ra "update1" rồi đến server 0 tạo ra "update2". Biết nó có "Enforce Casual Communication" (ép có tính truyền tin nhân quả)
+a) Hãy xác định vector clock của các server tại 6 điểm nhận message trên hình
+b) Điểm nào nhận message bị blocking và giải thích(chắc là do Enforce Casual Communication nên có blocking khi nhận tin)
+=> Tất cả câu trả lời đều yêu cầu giải thích chi tiết
+
+Vị trí các điểm từ trái sang phải:
+[0001] [0001] [1001] [0000] [0001] [1001]
+=> Server 2 là [0000] vì nó phải casual communication lùi VC nhận được từ server 0 lại về sau chứ k update ngay. Nó phải update khi nhân được update1 từ server 3 trước
+
+

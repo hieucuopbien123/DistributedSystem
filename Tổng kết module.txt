@@ -1,0 +1,623 @@
+Distributed System
+
+
+
+# Basic
+Các hệ thống phân tán như mail system, www,... phải giải quyết rất nhiều vấn đề như: bảo mật, chia sẻ truy cập tài nguyên (che giấu mà người dùng kb điều đó), các máy có phần cứng phần mềm khác nhau mà connect được với nhau, remote resource phải được truy cập dễ dàng và công bằng giữa tất cả,...
+
+Nhiều cấp độ che giấu: che giấu vị trí, cách thức truy cập, failure and recovery, hide that resource is replicated,... Kp lúc nào cũng che giấu tất cả
+
+Tính trong suốt của hệ thống phân tán ẩn đi sự phức tạp và trình bày cho người dùng 1 giao diện thống nhất để tương tác 1 cách dễ dàng. Người dùng và ứng dụng có thể tương tác với hệ thống đơn nhất mà k nhận thức được tính phân tán của nó
+Có nhiều mức độ transparency: location, access, replication, concurrency,...
+Còn hiệu năng là nói về khả năng mở rộng và tốc độ xử lý
+Ta cần cân bằng tính trong suốt và hiệu năng vì tùy vào mức độ quan trọng của thông tin, ta cần che giấu đến 1 mức cụ thể. Vc che giấu tất cả vị trí, cách thức truy cập, replica đôi khi là không cần thiết và khiến cho hệ thống trở nên phức tạp và giảm performance.
+Ngược lại k nên đánh đổi transparency để có hiệu năng cao vì nó liên quan đến vấn đề bảo mật của hệ thống. 
+k cần vào chế độ sleep lúc truy cập ổ đĩa nữa mà chia thêm luồng tiếp tục nhận và xử lý request mới luôn. Tức cứ 15ms 1 request.
+
+Open distribution system là hệ thống mà mỗi phần tử được cung cấp bởi bất cứ provider nào. Các service được cung ra theo các standard rules, bằng interface. Nó có các tính chất như mở rộng tốt, portability tốt, scaling tốt.
+Scale là các vấn đề như thêm nhiều user và resource vào ở khoảng cách xa, phân quyền bảo mật các thứ. Có nhiều technique giải quyết vấn đề như replicate, caching, async communication, phân tán. Scalable system là system có thể grow về số lượng components or kích thước và số lượng data mà k ảnh hưởng nhiều tới performance
+
+Kiến trúc có 2 loại: 
+Logical organization là kiến trúc phần mềm xây dựng nên hệ thống ntn
+Physical realization là kiến trúc phần cứng nói về vc organize phần mềm ntn trên thiết bị thực
+
+-> Về phần mềm có nhiều kiểu kiến trúc
+1) Layered architecture:
+Kiểu chia từng layer xử lý từng task độc lập, gửi request xuống từng layer và nhận response lại lên từng layer. 
+Vd mô hình OSI là mô hình connect mạng www phân tán dùng kiến trúc này
+
+2) Object-based architecture:
+Các object được kết nối với nhau qua các hàm call. VD mạng máy tính local có các máy tính là object truyền tin cho nhau.
+Stub code là để test và tương tác với 1 component và không phụ thuộc vào chức năng của nó, nó fix cứng giá trị và thực hiện behavior mimic actual component khi component đó not available. VD ta fetch API mà server k có thì stub code sẽ giúp giả định như 1 server trả về cho ta giá trị v
+Skeleton code là template của 1 component để ta gọi vào tương tác với component đó. Nó chỉ giả định giúp cho việc test chứ bên trong component đó là empty. VD frontend query tới server mà server chưa code xong thì skeleton code sẽ giả định các tham số cần có để gọi tới server đó 
+
+3) Event-based architecture: 
+Hệ thống Publish/Subscribe system, các component đăng ký vào EventBus. Khi có event phát qua bus sẽ thực hiện action tương ứng
+
+4) Data-centered architecture: 
+Tất cả communicate qua 1 common repo. VD github là hệ thống phân tán có data centered tập trung
+
+5) Microservices:
+Xây dựng ứng dụng như 1 khối chứa nhiều service con. Mỗi service chạy và deploy hoàn toàn độc lập. Tính isolation tốt, phù hợp với vc phát triển từng phần ở từng bản release thay vì 1 phát làm cả cục.
+Mô hình MVC trong server là 1 ví dụ nhỏ của micrososervice khi cung ra từng router controller độc lập. Nhưng microservice thì mỗi phần tử phải là 1 ứng dụng riêng và có thể chạy trên máy độc lập cơ.
+
+Các tool triển khai ứng dụng container: 
+Kubernetes quản lý việc deploy ứng dụng container lên 1 cụm máy chủ cluster có nhiều nodes. Tự động hóa các tác vụ deploy, phân phối tải, sao lưu và phục hồi, giám sát,..
+Docker
+Azure Container Service(ACS)
+
+Khi 1 ứng dụng có ít container thì quản lý thủ công được, khi có nhiều container sẽ cần dùng thêm các tool chuyên dụng.
+Vd dùng Kubernetes: nó có các master node quản lý nhiều worker node. Mỗi worker node có thể quản lý 1 docker. Master node sẽ nhận file config chứa thông tin chạy container nào ở docker nào và phân việc cho worker tự động triển khai. Nó cũng giúp xử lý khi 1 docker worker gặp lỗi.
+Nếu dùng docker thì dùng kèm k8s là hợp lý, nhưng docker có 1 tool sẵn cũng hỗ trợ rất mạnh là Docker Swarm với vai trò tương tự
+
+-> Về phần cứng có nhiều kiến trúc
+1) Centralized architecture
+Mô hình client server bth
+Multitiered architecture: điển hình nhất là 4 mô hình điện toán đám mây đã biết. Chia ra nhiều layer và tùy mức độ ta dùng đến layer nào
+
+2) Decentralized architecture
+Là 1 Overlay network => mô hình có overlay network đơn giản cung ra ngoài trên 1 physical network phức tạp bên dươi
+
+- Structured P2P: Là hệ thống mà các node được sắp xếp 1 cách có cấu trúc, các node thêm vào và rút ra đều phải tuân theo cấu trúc định trước
+
+Trên 1 network phân tán, data hash thành key và lưu trên các node mạng. Distributed Hash Table(DHT) và khi tìm sẽ tìm trong hash table, vì data lưu có cấu trúc rõ ràng như v nên tìm kiếm và làm mọi thứ rất nhanh.
+
+VD: Chord system là 1 strutured P2P sử dụng giao thức bảng băm phân tán. Các nút nối thành vòng có 1 nhận dạng duy nhất là 1 giá trị băm. Mỗi nút lưu thông tin của node ngay sau nó trên vòng để duy trì liên lạc. Khi có yêu cầu search theo khóa sẽ định tuyến đến nút chịu trách nhiệm bằng bảng định tuyến. Nếu có nút rời mạng sẽ phân phối trách nhiệm cho node lân cận và mạng vẫn duy trì hoạt động
+succ(x) = x nếu x là actual node trên chord
+
+VD: CAN system(content addressable network) tương tự nhưng k nối vòng. Khi muốn truy xuất dữ liệu sẽ sử dụng hashing alg để xđ node nào chịu trách nhiệm và tìm kiếm nó trên mạng.
+
+- Unstructured P2P: Sử dụng thuật toán random để xây dựng overlay network. Mỗi node lưu 1 list node neighbors. 
+Khác với cái trên có bảng băm thì cái này, data xếp random trên mạng nên khi tìm kiếm phải quét toàn mạng (tìm kiếm lũ lụt). Do đó nó có superpeer là peer luôn trong trạng thái bật và k thường rời đi như các peer bth. Nó chuyên lưu các chỉ mục, metadata về tài nguyên giúp các query tìm kiếm, cung cache các thứ
+=> Truy vấn tới sẽ tìm trong superpeer rồi superpeer sẽ tìm trong không gian lân cận của mình và chuyển tiếp các superpeer khác. 
+
+3) Hybrid architecture (kiến trúc hỗn hợp) kết hợp ưu điểm của 2 kiến trúc trên:
+Edge server System(edge tức gần người dùng cuối): hệ thống mà nhiều máy chủ cung data, hay xử lý tính toán phân tán gần với người dùng. VD CDN độ trễ cực thấp.
+Collaborative Distributed System: là hệ thống nhiều người dùng làm việc cùng nhau để đạt mục tiêu chung. Nguồn lực và nhiệm vụ được phân tán độc lập và kết nối qua mạng. 
+Vd: Bit Torrent có Checker mà tài nguyên các node được đk vào, khi có 1 yêu cầu mới, checker sẽ check node nào đang sở hữu và gửi lại người dùng các node sẵn sàng cung data đó.
+=> kiến trúc hỗn hợp đảm bảo k bị nút cổ chai như kiến trúc tập trung và k bị khó tìm node chứa data như kiến trúc phân tán
+
+Hệ thống phân tán có nhiều điểm tương đồng với hệ điều hành:
+1) DOS(Distributed OS): hệ điều hành phân tán là liên kết chặt, được phân bố giữa các máy giúp các ứng dụng phân tán chạy trên nhiều máy và chia sẻ các dịch vụ tài nguyên. Từng phần tử có thể liên lạc với nhau thông qua RPC (remote procedure call), message pasing.
+Yêu cầu là các máy phải đồng nhất về data cũng như phần cứng. Ưu điểm là tính trong suốt cao
+2) NOS(Network OS): hệ điều hành mạng là liên kết lỏng. Các máy chạy hđh mạng là độc lập với nhau k cần chung về phần cứng. Các máy khác nhau cùng sử dụng 1 ứng dụng phân tán được nhờ network os services ở giữa. Nó chạy trên từng local machine có thể k đồng nhất.
+Nhược điểm là các máy để tương tác với nhau phải cung cấp thêm các thông số truy cập nên tính trong suốt k cao.
+
+VD NOS:
+MachineA  MachineB  MachineC
+--Distributed Applications--    => cái này là chung là DOS
+NetworkOS NetworkOS NetworkOS   => cái này riêng là NOS
+ServiceA  ServiceB  ServiceC
+Kernel    Kernel    Kernel
+
+Middleware kết hợp ưu điểm NOS và DOS. Nó nằm giữa các service và application hoạt động như 1 cầu nối. Nó ẩn đi sự phức tạp ở máy riêng và cung ra 1 platform consistent and reliable để phát triển application phân tán giữa nh máy. Tức các máy có thể k đồng nhất nhờ NOS và vẫn đảm bảo tính trong suốt (máy A gọi máy B nhưng vẫn che giấu được lời gọi cũng như thông tin về máy B):
+MachineA  MachineB  MachineC
+--Distributed Applications-- 
+----Middleware Services-----
+NetworkOS NetworkOS NetworkOS
+ServiceA  ServiceB  ServiceC
+Kernel    Kernel    Kernel
+
+
+
+# Process communication
+-> Process và thread
+Thread context: là CPU context chứa thông tin thread management. Trao đổi tin thông qua biến shared mutex. 
+Để chuyển đổi từ ứng dụng A sang B: Đag thực thi ứng dụng A -> switch from user space to kernel space -> switch context từ process A sang process B -> switch lại kernel space to user space -> thực thi ứng dụng B
+Switch bao gồm cả việc làm sạch memory map trong MMU và clear TLB
+
+Đa tiến trình chi phí lập trình rẻ hơn vì k cần lo các cái conflict data quản lý các thứ như khi làm việc với thread. 
+Đa luồng nếu lời gọi hệ thống blocking call xảy ra sẽ block mọi luôn
+
+Light weight process(LWP) trong linux là nói tới "task". Nó là 1 đơn vị thực thi bên trong process. Các LWP được schedule và exec độc lập tương tự như thread nhưng được quản lý bởi Kernel thay vì thread lib như POSIX Thread(pthreads). Thread ở user space sẽ gắn với các LWP ở kernel space
+
+inetd là internet super server - 1 dịch vụ nền daemon trong các hệ điều hành Unix. Nó lắng nghe các yêu cầu mạng trên các cổng khác nhau và định tuyến chúng đến dịch vụ tương ứng. Nó được cấu hình trong /etc/inetd.conf
+
+-> Thread trong Distributed System
+Còn có kiến trúc server dùng dispatcher thread riêng chuyên nhận request của user và phân phối nó đến các thread con chuyên xử lý request
+
+Multithread server: nhận request vào queue và N thread đồng thời lấy queue ra xử lý. 
+Có nhiều mô hình như: thread per request, thread per connection, thread per object.
+
+Ở thread per object, mỗi 1 tiến trình từ xa, server sẽ tạo riêng 1 thread riêng để xử lý với nó. VD lời request tương tác tới server, server cần gọi api tới 3 hệ thống ở xa khác thì hệ thống đó là 1 request riêng quản lý.
+Khi quá nhiều yêu cầu tới 1 điểm tương ứng sẽ gây quá tải mà các thread còn lại lại rảnh.
+
+Còn có mô hình single thread nhưng Async + Event driven như nodejs
+
+--> Khi thiết kế server, có kiểu mô hình Find Server:
+Sau khi có ip và port của server rồi. Có thể có nhiều instance của server chạy ở trong, client có thể xác định rõ hơn nữa là tiến trình nào xử lý. Dùng 1 cái gọi là Daemon có tác dụng lưu 1 endpoint table. Server sẽ đăng ký endpoint vào daemon và luôn trong trạng thái chạy.
+Khi cần tương tác server, client sẽ gọi tới daemon lấy endpoint tương ứng của server phù hợp r query các endpoints đó để request service bth. Làm v thì endpoint đổi sẽ chỉ cần sửa trong daemon mà frontend k cần đụng.
+
+Cách khác là họ dùng 1 superserver với cơ chế tương tự nhưng tối ưu tài nguyên hơn khi nhiều instance của server ở trạng thái tắt khi lâu k có request. Khi có request mới thì superserver sẽ đánh thức actual server để dùng services tiếp.
+
+-> Client thread
+Trong vài TH, client phải xử lý replicated request để tăng performance và reliability. 
+Bằng cách replicate request ở phía client, nếu server đầu xử lý lỗi or timeout, nó retry request tới server tiếp theo, tăng fault tolerance
+Client có thể tự phân bố gửi request tới server tùy chọn dựa trên các tiêu chí riêng thay vì phụ thuộc hoàn toàn vào load balancing phía server. VD server nào gần hơn, nhanh hơn thì lấy.
+
+VD: trong trava có chơi kiểu dùng 1 list rpc và gửi thử request bất đồng bộ, thằng nào rep nhanh nhất thì lấy thằng đó. 
+
+-> Vấn đề về communication: socket, buffer, concurrent server, 7 tầng OSI, quy ước message format, cơ chế truyền message, TCP segment, UDP diagram
+TCP thì phải chờ hoàn thành nên là synchronous, UDP là async
+
+-> Request reply protocol. VD http
+
+--> RPC: là 1 vd kinh điển của Request-reply protocol
+Application service - middleware[[RPC: remote invocation, indirect comm], socket, overlay network,..] - UDP and TCP
+RPC k thuộc 1 tầng cụ thể nào trong mô hình OSI, nó là 1 khái niệm về cách giao tiếp giữa các ứng dụng trên mạng. Nó hoạt động ở tầng nào phụ thuộc vào cách triển khai.
+Cụ thể: client call procedure -> client stub xây message -> message gửi đi -> server gửi tới server stub -> stub unpack message -> thực hiện
+
+Có 3 cách gọi RPC:
+1) Call by value: phải xử lý vấn đề ở tầng trình diễn, biểu diễn số, ký tự và data khác nhau.
+2) Call by reference: con trỏ chỉ có ý nghĩa khi trỏ tới đúng không gian địa chỉ của process đang được sử dụng, gặp rất nhiều vấn đề như khi trỏ tới vùng nhớ cần data cấu trúc phức tạp => k nên
+3) Call by copy value vào stack, rồi overwrite lại sau lệnh call => cũng được nhưng tốn thêm bộ nhớ lưu bản copy
+
+Caller và callee phải thống nhất về format của message mà 2 bên trao đổi, implement client stub và server stub cho đúng.
+2 bên dùng 1 đặc tả tham số chẳng hạn. Interface tương tác giữaclient server cũng phải thống nhất để thỏa mãn tính mở của hệ phân tán, dùng ngôn ngữ đặc tả giao diện như IDL (Interface Definition Language)
+
+Có nhiều RPC models:
+Synchronous RPC: bth
+Nowait RPC: server gửi lại void và vẫn bất đồng bộ thực hiện tiếp (khi giá trị trả về k qtr)
+Callback RPC: server gửi lại void, sau đó server xử lý xong sẽ chạy call back của client 
+Batch RPC: Thay vì call nhiều lần, gom lại mấy request tới server đó thành 1 và gửi 
+Broadcast RPC: gửi tới mọi server và chờ nhận kết quả từ mọi server luôn
+Threaded RPC: nhiều thread, mỗi thread gửi synchronous RPC
+
+-> RMI(Remote Method Invocation) 
+Giống RPC, cùng dựa trên request reply protocol, dùng interface. RMI tốt hơn về OOP. RMI dùng trong java, có các method xử lý object, khác với RPC là 1 giao thức chung
+Ví dụ 1 ứng dụng gọi các phương thức trên đối tượng từ xa (remote invocation). Các đối tượng đó sẽ gửi qua lại giữa các máy tính (local invocation). Nó cũng hỗ trợ gửi nhận các đối tượng logic phức tạp hơn RPC.
+
+Hệ thống RMI trong Java:
+Interface: các remote object phải implement để gọi
+Remote Objects: đối tượng có thể được gọi từ xa bằng RMI
+Stub và Skeleton: Stub là 1 đối tượng phía client, Skeleton là 1 đối tượng phía server. Stub nhận yêu cầu từ client tới server. Skeleton nhận yêu cầu từ stub và gọi phương thức tương ứng trên server
+RMI registy: 1 dịch vụ đăng ký và tìm kiếm đối tượng RMI trên mạng. Client có thể tìm kiếm và nhận về tham chiếu đến đối tượng từ xa
+
+Client <--> | Stub     | Hệ thống |
+Server <--> | Skeleton |    RMI   |
+=> Các remote object đăng ký vào hệ thống RMI sẽ trao đổi được với nhau
+
+-> Message-oriented transient communication (trao đổi thông tin hướng thông điệp tạm thời): học trong môn network programming r, cái này là socket bth, mỗi communication là 1 socket được tạo mói và dùng
+
+Message-oriented persistent communication: hỗ trợ lưu trữ trung gian cho thông điệp (hàng đợi). Chấp nhận độ trễ thời gian cao như email chẳng hạn, 2 bên k cần online vì luôn có lưu trữ trung gian data k ợ mất
+Queue level addressing: nói tới scheme dùng để xác định và route message tới đúng queue cần lưu trong system lớn
+Network level addressing: nói tới scheme dùng để xđ và route data packet giữa các host và devices khác nhau trong 1 network.
+
+=> Kết hợp 2 cái với nhau, message truyền qua mạng được lưu trong queue của từng node trung gian như router, chờ đến khi xử lý forward sang queue của node tiếp theo, chứ kp là vào router phát truyền được đi ngay vì router có thể phải nhận quá nhiều message 1 lúc
+
+Mesage broker nằm trong middleware giữa nguồn gửi và nhận để điều phối, định tuyến. Nó nhận tin nguồn gửi và gửi tới queue nguồn nhận tương ứng. Công việc này rất phức tạp, nó có thể phải connect vào repo để lấy các rule và ct check thứ tự hay điều kiện khác nữa.
+Source client[queue gửi] -> Máy trung gian nào đó có queuing layer[các queue nhận -> message broker -> các queue gửi đi tiếp] -> Destination[queue nhận]
+VD: RabbitMQ là 1 Message Broker mã nguồn mở dùng trong hệ thống phân tán
+=> Nh TH thực tế, ta thấy message broker bao gồm cả queue ấy
+
+Mô hình basic chứa đủ routing network, queue, message broker:
+Máy 1 [Sender -> Queue layer tương tác với address-lookup db lấy address + Queue -> Stubs send đi ] -> Routing bằng address -> Máy 2 [Skeleton nhận -> 10 queues nhận -> Message broker tương tác với repo để lấy check các rule -> phân phối tới đúng queue gửi -> Stub gửi đi ] -> Routing bằng address qua mạng tiếp -> Máy 3 [skeleton nhận -> Queue nhận -> Đây là destination address-lookup đúng cần xử lý]
+
+Phân biệt chuẩn:
+Message-oriented transient communication: Các tin nhắn được gửi và xử lý và sau đó xóa tin nhắn. Thường dùng khi cần gửi thông báo hay cập nhật trạng thái tạm thời. 
+
+Message-oriented persistent communication: Các tin nhắn được lưu trữ bên vững cho đến khi bên nhận xử lý thành công. Thường dùng trong hệ thống giao tiếp đòi hỏi độ tin cậy cao như ngân hàng để đảm bảo hệ thống gặp sự cố vẫn k mất tin nhắn.
+Tin nhắn có thể lưu trong DB, message queue (thực tế MQ k tự xóa nếu ta k chỉ định nó xóa nên có thể dùng lưu data dù k nhiều như db thực), file system, redis or memcached. 
+Tin nhắn có thể được lưu cả 2 phía tùy ý code. Phía gửi lưu trước khi gửi đảm bảo k gặp sự cố khi gửi, gửi thành công có thể xóa ở phía gửi. Phía nhận lưu trước khi xử lý để đảm bảo tin nhắn k bị mất khi hệ thống gặp sự cố hay không sẵn sàng để xử lý. 
+
+-> Stream-oriented communication (hướng dòng)
+Chính là việc xử lý các vấn đề stream đã biết trong môn multimedia. Xử lý tốc độ truyền, delay, dùng buffer, dùng FEC để phát hiện và sửa lỗi (gửi tách ra làm lost package lỗi sẽ phân tán và k bị giật 1 cục liền nhau), đồng bộ stream âm thanh và hình ảnh qua middleware
+
+Truyền dữ liệu như bth nhưng phải có thêm stream encoder và stream decoder
+QoS(Quality of Service) đánh giá theo độ bit rate hay jitter(độ trễ gói tin)
+Có thể sử dụng buffer để giảm jitter. Vì package đến sẽ vào buffer và trả về kq luôn chứ k chờ đến khi rỗng mới đi vào buffer nữa
+
+Đồng bộ stream: Đồng bộ 1 discrete stream với 1 continuous stream, hoặc 2 continuous stream.
+Điều này để đảm bảo các luồng dữ liệu cùng nhịp độ và thời gian bắt đầu. Nếu không có thể bị lệch thời gian (time driff) giữa âm thanh và hình ảnh. Có nhiều kiểu đồng bộ hóa như:
+Dùng 1 nguồn thời gian chung như GPS, NTP
+Dùng các giao thức đồng bộ hóa như Precision Time Protocol 
+Dùng bộ đệm và tự custom đồng bộ đầu vào và xử lý trễ
+Tự sử dụng timestamp trong dữ liệu, thông qua đó xđ thời điểm và thời gian phát sóng. 
+=> Trước h gửi data, ta chưa bh phải xử lý đồng bộ kiểu này.
+Tự nghĩ: Bộ phát có thể cung ra 1 interface và ta tạo 1 middleware control sự đồng bộ giữa video và hình ảnh dựa trên interface đó => khá trừu tượng ha nhưng giải quyết đc vấn đề
+
+Dòng dữ liệu phức gồm nhiều dòng dữ liệu đơn có quan hệ về thời gian. Vd âm thanh và hình ảnh là 2 dòng dữ liệu đơn có qh về tg với nhau
+
+
+
+# Đặt tên trong hệ thống phân tán
+Name -> Entity (duy nhất 1 identifier) ___ AccessPoint ___ Address
+                                       ___ AccessPoint ___ Address
+Để có đủ identifier họ dùng 1 naming system phân tán. URI là string có cấu trúc identify 1 resource
+
+-> Flat name
+Identifier sử dụng random bit string sẽ k chứa các thông tin cần thiết như địa điểm các thứ. Có 4 solution (các solution không gắn location vào identifier mà nó cung ra cách thức lấy được location từ identifier, vì identifier không gắn thông tin location nên người dùng k biết vị trí của host ở đâu để query thì biết id coi như vô dụng, thì đây là 4 giải pháp): 
+1) Simple solution
+Broadcasting and multicasting: Mỗi request sẽ gửi tới mọi máy và mỗi máy sẽ check xem có entity đó không. Chỉ máy nào có thể gửi lại access point tới entity mới gửi trả message là accesspoint đó (Access point có thể là MAC address chẳng hạn hay bất cứ 1 cái gì giúp tìm tới máy đích nhanh nhất)
+=> Quá tốn khi mà broadcast liên tục tới khi tìm được thì thôi
+
+Forwarding pointer mechanism: là kỹ thuật nhằm quản lý bộ nhớ hiệu quả. Ta sử dụng con trỏ phụ forwarding pointer thêm vào để trỏ tới vị trí mới khi đối tượng di chuyển => k thay đổi bộ con trỏ hiện có
+VD: Sinh viên 1 -> Sinh viên 2 -> Sinh viên 3
+=> Ta thêm 1 Sinh viên mới vào đầu thành Sinh viên mới -> Sinh viên 1 -> Sinh viên 2 -> Sinh viên 3 thì k ổn vì ta đã tham chiếu sinh viên 1, 2, 3 ở 1 chỗ khác trong đoạn mã là phần tử thứ 1, 2, 3
+Do đó ta dùng thêm 1 loại pointer mới là forwarding pointer từ sv mới sang sv 1, k ảnh hưởng đến pointer cũ. Muốn dùng sinh viên mới, phải thông qua forwarding pointer.
+
+Trong mạng VD có A -> B -> C(có entity X) -> D
+Entity X lưu ở C bỗng di chuyển sang D thì nó phải để lại 1 cái forwarding pointer ở C reference tới D 
+Khi đó: A -> B -> C(entity X - forwarding pointer tới D) -> D(entity X)
+=> Khi chain quá dài, việc để lại con trỏ sẽ trở nên đắt và hoang phí khi di chuyển nhiều. Link bị broke ở 1 chỗ nào phát là không thể lấy được entity nữa
+Fix tình trạng broke link. VD: A tìm được X trên D, D sẽ return lại location để A tạo 1 shortcut trực tiếp tới D luôn. Để khi B hay C broke thì A vẫn lấy được D. 
+
+2) Home-based Approaches: client send tới stable host's home location lấy địa chỉ hiện tại của host -> query package tới địa chỉ hiện tại để lấy data
+Host đổi location thoải mái, nhưng home cố định để client gọi tới và lấy vị trí. Tức ta phải có 1 centralized location fix cứng kbh đổi
+
+3) Distributed Hash Tables: 
+Cơ chế xây dạng vòng VD có 32 phần tử đánh index từ 0 đến 31, không phải phần tử nào cũng là 1 actual node mà vẫn có các node rỗng, nối thành vòng. Mỗi phần tử có:
+prev(n) index của actual node trước node n
+succ(n) index của actual node sau node n
+p là index current node
+
+Mỗi node lưu 1 bảng Finger Table (FT) là 1 mảng có vài phần tử Vd 5 phần tử.
+FT[i] = succ(p + 2^(i - 1)). Vd: FT[3] của node 4 là: succ(4 + 2^2) = succ(8) là giá trị index của actual node có index >= 8 
+
+Để tìm key k (hay node >= k), node p sẽ forward request tới node q bằng cách tìm trong bảng node nào có giá trị lớn nhất <= k => tốc độ tìm khá nhanh
+
+4) Hierarchical Approaches
+Lưu dạng cây, duyệt preorder
+Có thể dùng thêm caching ở từng node ref tới node con trực tiếp để search nhanh 
+Vấn đề về 1 entity xuất hiện ở 2 node với 2 domain khác nhau cũng ok
+Update node chạy từ cha sang con rồi về cha để đảm bảo tạo ra node mới lưu con là nốt cha ở sát leaf nhất
+
+-> Structured Name
+Naming graph: là 1 graph mà ở mỗi path lưu 1 string => thực ra khi implement thì mỗi node lưu 1 bảng ref tới các node con thông qua string của path tới các con. Request từ root tới 1 node bất kỳ qua từng path. 1 node có thể được ref từ root bởi nhiều path. 
+Directory node là node có outgoing edge
+
+Nó được dùng trong file system của UNIX: file[filename|inode] -> inode[permission|data address] -> data value
+
+Hardlink: 
+file1[filename|inode] -> inode[permission|data address] -> data value
+file2[filename|inode] _/^
+
+Soft link:
+file2[filename|inode] -> inode[permission|file1 address] -> file1[filename|inode] -> inode[permission|data file1 address] -> data value
+
+Mounting: Name server ở machine A có thể tạo link đến 1 name trên name server ở machine B
+Merging: Merge 2 name tree ở 2 name space khác nhau vào làm 1 thì chỉ cần tạo 1 node root có con là 2 node root của 2 NS kia là được
+
+-> Naming service cung bởi name server. Large-scale distributed system phân bổ name space trên nhiều name server khác nhau chứ k chỉ 1 vì phạm vi rất lớn.
+Trong mô hình cây, root node và directory node gần root node biểu diễn cho tổ chức hoặc 1 nhóm tổ chức mang quyền admin, nó hiếm khi thay đổi. Còn các node lá biểu diễn các user thường xuyên thay đổi: global layer -> administrational layer -> managerial layer
+VD: DNS name space có cây phân cấp
+Global layer thường có replica nhiều hơn, cache nhiều, ít node biểu diễn, scale lớn. Managerial ngược lại
+
+DNS: 
+Mỗi client có 1 cái name resolver. 2 kiểu là:
+Iterative: client gửi nhận về address name server kế, lại gửi tiếp và cứ thế => nhiều request
+Recursive: client gửi request, các name server tự gửi tiếp đến đích r trả ngược về đúng address cần => 1 request
+
+Recursive DNS server bị Amplification Attack: kẻ tấn công lợi dụng máy chủ DNS công cộng để gửi các gói tin đến các máy chủ DNS của doanh nghiệp để lấy ip address. Các câu trả lời DNS kích thước lớn làm quá tải máy chủ DNS của doanh nghiệp, nó lớn vì là recursive query hoặc DNS zone transfer. Kẻ tấn công k cần sử dụng tài nguyên của mình lớn mà vẫn tấn công được, làm sập DNS server của doanh nghiệp. Làm sập server đích vì quá nhiều request tới nó để lấy IP từ các DNS server.
+
+
+
+# Đồng bộ hóa
+-> Physical clock synchronization
+2 máy phải có cùng đồng hồ clock thì sự kiện diễn ra theo thời gian mới đồng bộ ở cả 2. Vd lấy thời gian máy thực trong code. Nhưng client có thể tự điều chỉnh thời gian máy chạy tùy ý thì họ có thể kiểm soát thông số đó. VD sau 3p + 1 ticket => chỉnh thời gian lên 30p tự nhận 10 ticket
+
+VD: GPS(Gloal Positioning System) có vệ tinh và máy nhận có đồng hồ k đồng bộ. Có thể tính delay thời gian gửi từ vệ tinh tới người nhận bằng cách gắn timestamp trước khi gửi và tính delay sau khi gửi (chỉ khi đồng hồ đồng bộ mới có tác dụng) => tính được kc từ receiver tới vệ tinh. 
+Xét 2D, receiver nhận sóng 2 vệ tinh sẽ giao nhau 2 điểm, phải loại bỏ 1 điểm. Nếu 3 vệ tinh tạo 3 đường tròn sẽ giao nhau chỉ 1 điểm thì k cần loại bỏ điểm nào cả.
+Khi đó, để tính được delta t để tính ra kc từ vệ tinh tới receiver chỉ khi các vệ tinh và máy nhận đồng bộ về mặt tg. Nếu lệch về thời gian thì vc tính toán sẽ sai. 
+
+Trong máy tính có RTC là real time clock để duy trì thời gian thực kể cả khi máy tắt. RTC được tích hợp trong 1 IC riêng biệt or 1 IC trên bo mạch chủ của máy tính. Nó chứa 1 viên pin CMOS cung nguồn điện dự phòng khi máy tính tắt
+
+3 thuật toán đồng bộ đồng hồ vật lý:
+a) Network Time Protocol(NTP)
+Client query lấy thời gian từ máy chủ time server. 
+Máy khách điều chỉnh thời gian bằng thuật toán phức tạp, đo độ trễ + sai số đồng hồ để đồng bộ chính xác
+
+Nó tính thời gian delay trung bình để truyền message theo 1 chiều bằng công thức: ((T4 - T3) + (T2 - T1))/2 = offset
+offset + T3 - T4 là độ lệch delay khi gửi request đi và nhận request về
+
+b) The Berkeley Algorithm
+Time deamon là tiến trình chạy ngầm của thời gian sẽ tự request tới các clock khác lấy sự chênh lệch về thời gian rồi tính trung bình ra. Sau đó request update trên mọi clock, bao gồm cả việc update chính nó và các clock khác
+
+c) Clock Synchronization in Wireless Networks: éo hiểu => có công thức nhưng khó hiẻu
+
+-> Logical clock synchronization
+1) Lamport's Logical Clocks:
+Truyền message gắn 1 timestamp như bth.
+VD 1 luồng: P1 có counter C1 -> C1 += 1 -> P1 gửi message m cho P2 nhưng set timestamp của m là C1 -> P2 nhận được sẽ update counter C2 của mình = max(C2, timestamp(m)) -> Tương tự với luồng trả dữ liệu về => cứ thế thì tất cả đồng hồ sẽ theo cái clock có giá trị lớn nhất
+=> Chú ý clock ở đây kp đồng hồ thế giới mà chỉ là clock đồng bộ trong máy
+
+Vấn đề update database: 
+VD người A update 1 cho 2 database replica, người B update 2 cho 2 database replica. Cả 2 người đều gửi request tới 2 database nhưng chắc chắn database gần hơn sẽ nhận trước. Giả sử database1 gần người 1, database2 gần người 2. V thì database1 và database2 là như nhau nhưng db1 update1 trước update2, db2 lại update2 trước update1. Nếu 2 lệnh liên quan tới nhau thì là sai => cũng éo hiểu fix cái này kiểu gì. Chắc phải lưu delay lại ở case replica này
+=> Thực tế họ dùng 1 db cho update thôi, nhiều db replica để đọc sẽ tự update theo chứ k dùng nhiều replica db được quyền write trực tiếp như v. Do có delay nên mói có kiểu thông báo người dùng là it takes a while to update everything thực tế là update tiếp các replica db. Với các db write nhiều, có thể dùng các PP khác như shard db.
+=> Có thể update kèm trường timestamp và khi đồng bộ giữa các replica sẽ config ss timestamp, nhưng khi đó cần có cơ chế để các data từ client gửi đi phải cùng timestamp bất chấp múi giờ khác nhau.
+
+2) Vector Clocks
+Tương tự trên nhưng counter thay bằng VC là 1 vector VCi[j]=k => tức vector thuộc về process Pi đang lưu thông tin rằng số lần event xảy ra ở process Pj là k
+VD 1 luồng: P1 có VC1 -> VC1[1] += 1 -> P1 gửi message m tới P2 có timestamp là VC1 -> P2 nhận được thì chỉnh VC2[k] = max(VC2[k], timestamp(m)[k]) -> tức ở đây nó update cả vector VC2 theo VC1 luôn, lấy giá trị max.
+VD VC1=(0,1,1) tức VC1[2] = 1 tức nó đang biết rằng process P2 chỉ có 1 sự kiện cho đến thời điểm hiện tại
+
+Cơ chế vói ví dụ trong slide:
+Có 3 process thì vector clock sẽ có 3 phần tử.
+Đầu tiên process P0 phát event thì nó set VC0[0]=1 trước r mới gửi tới P1. P1 đang có [0,0,0] nhận được thì update thành [1,0,0]. P1 sau đó phát event sẽ biến thành [1,1,0]. Khi P1 gửi lại data cho P0 thì P0 đương nhiên update thành [1,1,0]. P2 ban đầu là [0,0,0], nhận được event từ P0 update thành [1,0,0], nhận event từ P1 thành [1,1,0] => Đó là theo thứ tự thời gian.
+
+Vector Clock khi message truyền giữa các process cần có tính nhân quả (causal communication):
+Khi 1 process update vector clock của nó, nó sẽ gửi tới mọi process khác để đồng bộ. VD update từ (0,0,0) sang (1,0,0) thì ok nhưng từ (0,0,0) sang (1,1,0) thì rất có vấn đề vì nó k có tính nhân quả. Process này bị miss 1 bước nào đó. 
+Enforce causal communication là tình huống thông điệp bị xử lý chậm để đảm bảo tính nhân quả. VD ở TH trên thì bước update (0,0,0) sang (1,1,0) bị lùi lại. Nó chờ update 1 bước trước VD (0,0,0) sang (1,0,0) rồi mới sang (1,1,0) => để làm v thì process đó lưu message update (1,1,0) lại r chờ có (1,0,0) xong r mang ra dùng là được
+VD trong slide thì điều kiện j là process 3, i là process 2
+
+Điều kiện để có tính nhân quả mà k cần delay process a là nó nhận được vector clock từ process x mà VCx[x] = VCa[x] + 1 và các giá trị khác của VCx đều nhỏ hơn or bằng VCa 
+
+-> 3 loại thuật toán cho mutual exclusion algorithms: là các thuật toán trong hệ thống phân tán để đảm bảo chỉ 1 process được truy cập resource ở 1 thời điểm
+1) Centralized Alg: Permission-based
+Cơ chế: Để vào resource buộc có permission cung bởi coordinator. Process 1 request tới coordinator để lấy permission truy cập resource. Các process khác cũng truy cập coordinator ngay sau đó sẽ đưa vào hàng đợi. Process 1 thực hiện xong thì release resource, từng process trong hàng đợi sẽ lấy ra và lặp lại. 
+Nó ez và tránh deadlock. Nhưng vì tập trung resource centralized và chỉ được request khi coordinator cho phép nên bị bottleneck và crash ở 1 bước là hỏng hết.
+
+2) Distributed Alg
+VD khi có nhiều user cùng request tới receiver để access vào resource. Nếu receiver đang bận xử lý 1 request khác sẽ gửi lại "OK" để sender biết báo là chưa thực hiện được ngay. Nếu 2 request đến cùng lúc thì check timestamp nào nhỏ hơn thì xử lý rồi gửi lại OK cho tất cả. 
+Khi receiver xử lý xong 1 thì báo để các sender khác gửi lại request
+=> Nó giống trên nhưng nó n point of failure thay vì 1 điểm lỗi.
+
+3) Token Ring Alg
+Như bth, 1 cái token truyền qua các node trong ring. 
+Mỗi process node có token sẽ check có cần enter critical section không. Nếu không thì send tới node kế, nếu có thì dùng token để truy cập vì phần data critical section k thể truy cập đồng thời mà ta setup để chỉ process nào có token mới được thôi.
+=> Nhược điểm duy nhất là token loss là hệ thống đứng yên luôn
+
+Election Algorithm là thuật toán giúp bầu coordinator trong hệ phân tán khi có lỗi xảy ra
+Có 2 alg:
+1) Bully Algorithm
+Ban đầu, mỗi process có 1 định danh duy nhất và biết list các process khác trong hệ thống
+Cuộc bầu cử diễn ra khi setup lần đầu tiên và khi lãnh đạo hiện tại bị crash. 
+Mỗi process có định danh thấp hơn sẽ gửi election message tới process có định danh cao hơn nó. 
+Process nhận tin check mình có mã định danh cao hơn không, nếu không thì gửi lại từ chối, nếu có gửi lại tin nhắn báo nó chiếm quyền lãnh đạo.
+Cuối cùng bầu cử thành công khi chỉ có 1 process vẫn còn hoạt động và có mã định danh cao nhất làm lãnh đạo
+
+2) Ring Algorithm
+Cũng giống như trên nhưng các node nối thành vòng tròn và truyền theo 1 hướng. 1 node nhận message thấy số định danh nhỏ hơn thì nó gửi discard message đi báo nó mới là leader chuẩn, nhận message của node khác có số định danh lớn hơn thì forward đi thôi. 
+
+Election trong mạng không dây
+1 node lan truyền nhưng k có quy tắc mà node nào nhận message với tốc độ nhanh hơn thì chọn path đó
+Cuối cùng khi gửi qua hết các node thì các node gửi ngược lại mã định danh theo path đó. Nếu 1 node nhận được 2 mã định danh thì lấy cái cao hơn thôi. Cuối cùng chọn ra được node có mã lớn nhất là lãnh đạo
+
+Election trong hệ thống lớn
+Giống kiểu token ring cũng có 1 token di chuyển nhưng các node phân bố rải rác trong không gian 2D và token được dịch chuyển giữa các node bằng repulsion force (lực đẩy)
+
+
+
+# Consistency and replication
+Akamai Technologies is a global content delivery network (CDN) and cloud service provider. It is one of the largest and most widely used CDN providers in the world. Akamai's CDN helps to deliver content, such as web pages, videos, and other digital assets, to end-users more efficiently and securely. It operates a network of servers located in various data centers around the world, which helps to reduce latency and improve the performance of websites and applications. Akamai also offers a range of cloud services, including security solutions, media delivery, and web performance optimization.
+AKAMAI: người dùng đưa data cho akamai, akamai sẽ phân tán nó ra nhiều máy chủ khắp nơi trên thế giới, cung dịch vụ CDN.
+
+Trade-off between consistency and performance:
+Có càng nhiều replica, việc đồng bộ sẽ càng tốn thời gian và ảnh hưởng hiệu suất tổng thể của hệ thống. 
+VD họ có thể ưu tiên performance bằng cách config việc update database chậm lại, VD cho vào hàng đợi hay thực hiện từ từ thôi (nhất là khi ghi 1 lượng lớn data)
+VD họ có thể ưu tiên consistency bằng cách update đến tất cả bản sao khác trước khi cho phép bất cứ 1 hoạt động đọc tiếp theo nào, đảm bảo tính nhất quán nhưng sẽ có delay lớn nếu update diễn ra chậm
+
+Có nhiều loại consistency model:
+-> Data-centric consistency models
+Nhất quán hướng dữ liệu có 2 case:
+Nhất quán tuần tự: Kể cả hành động ghi A ở máy A trước hành động ghi B ở máy A2, nếu tất cả các tiến trình đều thấy kết quả của A sau B thì vẫn coi là nhất quán tuần tự. Chỉ cần mọi process đều thấy thì coi là tuần tự, chứ k theo timestamp
+Nhất quán nhân quả yếu hơn vì các process có thể thấy hành động lệch nhau nếu các hành động đó là độc lập, k có qh nhân quả với nhau 
+Có thể xđ 1 mô hình có tính nhất quán nào
+
+1) Continuous consistency model: Update liên tục khi data đổi
+Để biết 1 cái có inconsistency hay không, họ dùng deviation là 1 mức sai số đo sự sai khác về data, thời gian update và thứ tự thực hiện. Nếu deviation vượt quá 1 ngưỡng thì được coi là inconsistency và họ dùng 1 middleware để thực hiện replica operation đồng bộ, khiến deviation về lại giá trị đầu
+
+Conit là 1 lượng data mới được update ở database và cần update replica cho nó. Nếu conit mà lớn sẽ ưu tiên update replica ngay vì sự không nhất quán diễn ra rất nhanh, nếu update nhiều conit ít data thì deviation nhỏ sẽ k ưu tiên update ngay nên có thể bị delay
+
+3 thông số:
+VD có replica A và B. Ta set các thông số của A
+Vector clock (a,b) => a là thao tác mới nhất ở replica A nếu thực hiện tất cả các committed operation, b là thao tác mới nhất ở replica B mà A biết (do B gửi cho A, ta biết là thứ tự và gửi đồng bộ đi luôn được gửi qua lại giữa các replica giống bài synchronizaiton ấy)
+Order deviation = 3 => tức A có 3 operation chưa commit và vẫn trong hàng đợi
+Numerical deviation = (a, b) => Nếu B có a operation nữa chưa gửi cho A. Nếu B thực hiện hết các operation thì so với giá trị của A ở thời điểm hiện tại, giá trị biến chênh lệch nhiều nhất là b => sai, phải là ss kết quả của các operation khi uncommit và commit
+VD: 00 -> 36 và 20 -> 05 chứ kp 20 25
+Conit sẽ quan sát các biến thay đổi ở nhiều db thôi mà, kích thước bao hết số lượng biến
+
+2) Consistent Ordering of Operations
+Nó khác với vấn đề về việc replicate thì chỉ master được write và các slave chỉ đọc, ở đây nó giải quyết cả việc có thể write vào nhiều databases
+VD có nhiều replicated database ở nhiều nơi chạy song song với nhau và đều có quyền write thì phải có cơ chế đồng bộ về thứ tự các operation
+Ri(x)a
+Wi(x)b
+
+a) Sequential consistency
+Mỗi database có 1 local sequence chứa operation của nó. Có 1 global sequence chung luôn. Mọi update đều phải lên global sequence trước và xếp theo thứ tự để db nào cũng access được và lấy từ đó ra mà update. Mọi db sẽ có chung 1 thứ tự write operation
+b) Causal consistency
+Các event có quan hệ thứ tự với nhau sẽ được thấy bởi mọi process và mọi process phải thực hiện đúng thứ tự đó.
+Các event update được song song có thể chạy theo thứ tự khác nhau tùy ý trên các máy khác nhau
+
+Việc sequential và causal consistency được định nghĩa ở cấp đọc và ghi ở mưc hardware khi chạy hệ thống multiprocessor shared memory, k phù hợp ở mức software
+
+ĐK để thỏa mãn causal consistency nữa là: trước khi update shared item, phải vào critical section; Trước khi update, phải đảm bảo fetch data mới nhất về trước bằng owner of sync variable.
+
+-> Client-centric consistency
+Eventual Consistency. VD: DNS hay WWW thì để 1 thời gian dài k có lệnh write sẽ tự consistent hết thôi
+Eventual Consistency có vấn đề như slide, là 1 kiểu của nhất quán hướng dữ liệu => nhất quán hướng client ra đời giúp khắc phục điều đó
+Nhất quán hướng client khác với hướng dữ liệu ở chỗ, mô hình chỉ cần thỏa mãn ở góc nhìn 1 client.
+
+Cái client centric lấy client làm trung tâm tức đảm bảo nó luôn access consistent data. Vd client đó ở VN update, sau đó sang Mỹ thì get data về vẫn là data mới nhất đã update, tức 1 client này đảm bảo luôn truy xuất đồng bộ. Kiểu này sẽ k đảm bảo TH có nhiều client access đồng thời vào DB phải đồng bộ.
+
+1) Monotonic read: 
+Monotonic read là một thuộc tính trong hệ thống cơ sở dữ liệu phân tán, nó đảm bảo rằng một khách hàng sẽ không nhìn thấy các phiên bản cũ hơn của dữ liệu sau khi đã nhìn thấy một phiên bản mới hơn. Nghĩa là, nếu một khách hàng thực hiện một hoạt động đọc và nhìn thấy giá trị X của một dữ liệu, thì tất cả các hoạt động đọc tiếp theo của khách hàng đó sẽ không nhìn thấy bất kỳ giá trị nào nhỏ hơn X. Điều này đảm bảo tính nhất quán của dữ liệu và ngăn chặn việc nhìn thấy các phiên bản cũ hơn của dữ liệu sau khi đã nhìn thấy phiên bản mới hơn.
+=> Đây là 1 thuộc tính, kp 1 pp
+Để đạt được monotonic read, có thể dùng nh pp như:
+Chặn mọi tính năng read cho đến khi write tới mọi db
+Sử dụng timestamp dữ liệu lưu mỗi khi người dùng đọc 1 data để đảm bảo người dùng chỉ đọc 1 data ở phiên bản có timestamp >= timestamp của phiên bản mà họ từng đọc trước đó (nếu bị sẽ delay và yêu cầu update or báo warning cho người dùng được). Timestamp gắn với dữ liệu cũng giúp 1 database k update data cũ đè lên data mới. Nhưng phải đảm bảo timestamp của db ở mọi nơi đều phải chung 1 global timestamp k lệch nhiều.
+
+Xác định 1 mô hình có thỏa mãn nhất quán đơn điệu đọc k:
+VD: 1 người đọc ở L1 được x1, đọc ở L2 được x2, nếu L2 được phổ biến giá trị x1 từ L1 từ trước r thì nhất quán đơn điệu đọc, nếu L2 chưa từng thì k thỏa mãn, tức nó cung x2 từ đâu đó k thể đảm bảo là mới hơn x1 được
+Tương tự ghi x1, ghi x2 chỉ đúng nếu trước đó L2 từng được phổ biến x1 từ L1, rồi bh ghi đè lên thành x2
+=> Tức trước khi thực hiện thì được phổ biến rồi sẽ là thỏa mãn tính đơn điệu 
+
+2) Monotonic write:
+Là 1 thuộc tính đảm bảo các hoạt động ghi luôn diễn ra đúng thứ tự dù nhiều người cùng update nhiều actions parallel.
+Tương tự thì ghi cũng dùng được các PP giống như read để đạt được monotonic write
+
+3) Read your write:
+Đảm bảo 1 khách hàng sẽ thấy các thay đổi gần nhất mà họ thực hiện trong db. 
+Có thể sử dụng timestamp cũng đạt được thuộc tính này
+
+4) Writes follow reads
+Write cái nào thì read chính data đã được write đó luôn, k cần access lại db
+
+-> Replica management
+Đặt replica ở các nơi phân bố đều sao cho client ở đâu cũng lấy được data tốc độc cao
+
+Có 3 loại replica:
+a) Permanent replicas là kiểu data được replica ở 1 lượng giới hạn server và mỗi request có thể dùng route robin or client choose mirror tới các distribution
+
+b) Server initiated replica:
+1 loại replica linh động hơn khi server monitor, nếu số lượng request tăng nhanh sẽ tự activate các replica khác và update new data vào replica ở gần các client tương ứng để tối ưu. Vì đơn giản lượng request k phân bố đều trong ngày
+
+c) Client initiated replicas: 
+Client sẽ request như bth nhưng để k quá tải replica, mỗi client sẽ manage thêm cache ở từng replica. Nhiều client khác dùng data đó đều dùng chung được cache.
+
+Để update:
+- Đầu tiên nó lan truyền notification về update, rồi truyền modified data, rồi send update operation
+- Push: server phải có list of connected client -> multicast
+Pull: Thường dùng cho client cache -> unicast
+
+-> Thuật toán đồng bộ nhất quán: thực chất là cân lại 3 thông số numerical deviation, staleness deviation, ordering deviation
+1) bounding numerical deviation
+Mỗi action write chứa 1 weight biểu diễn cho numerical value mà x đươc update
+2) bounding staleness deviation
+Mỗi server có 1 localtime sao cho lưu time của từng actions nó thực hiện. Bằng cách quản lý các operation đó, nó sẽ cân sao cho các operation liên quan tới nhau thực hiện đúng thứ tự local time. Nó xóa bỏ các actions đã thực hiện sai và làm lại.
+3) bounding ordering deviation
+Mỗi replica có 1 write queue kết hợp với global order để write đúng thứ tự
+
+- Primary-based protocol:
+1 hệ thống có nhiều primary và secondary node, mỗi node có nhiều replica
++ Fixed primary (remote write protocol): 
+primary node gửi nhận được yêu cầu ghi sẽ thực hiện ghi vào replica của secondary node và quá trình này diễn ra bằng cách gửi yêu cầu tới từng replica riêng lẻ lần lượt làm tăng độ trễ nhưng tính nhất quán cao
++ Local primary (Local write protocol):
+Primary node nhận yêu cầu ghi sẽ thực hiện ghi vào bản sao của chính nó trước rồi sẽ truyền thông báo về update data cho secondary node và các node này sẽ tự update data vào bản sao của chúng 1 cách bất đồng bộ. Nó nhanh hơn cách trước nhưng sẽ k nhất quán nếu có sự cố truyền thông tin giữa primary node và secondary node thì nó kb mà báo lỗi, chỉ gửi xong là thôi.
+
+- Replicated write protocol
++ Active replication:
+1 process chuyên làm propagate update operation tới mọi replica. Cần có cơ chế đồng bộ thứ tự như Lamport, Sequencer
++ Quorum based protocol:
+Vì ta update mọi replica hao phí lớn nhưng sau đó kp mọi replica đều cần đọc ngay nên có cơ chế giảm số lượng replica cần update. Do đó họ chia thành các quorum chỉ đọc ghi 1 lượng quorum nhất định, sau đó sẽ lấy data từ nhiều replica để chọn ra data mới nhất
+Nr + Nw > N và Nw > N/2
+Nr+Nw>N để tránh xung đột đọc ghi vì sẽ luôn có db là chứa bản ghi mới nhất
+Nw>N/2 để tránh xung đột ghi ghi vì bản ghi mới nhất sẽ chiếm > 50% db so với các bản ghi cũ
+VD có 50 data thì Nw có 26 cái, Nr có 25 cái sẽ thỏa mãn Nr + Nw > N và Nw > N/2 => khi đó lấy data từ tất cả các quorum read kiểu gì cũng có data mới nhất theo nguyên lý chuồng bồ câu. Tùy cách chia muốn đọc nhanh hay ghi nhanh nhưng chắc chắn là k cần update tất cả.
+
+
+
+
+# Giải BT
+-> Phần 1: 
+1) Middlware là cầu nối các thành phần trong hệ thống phân tán. Nó giúp ứng dụng và dịch vụ giao tiếp với nhau, có tính linh hoạt, mở rộng cao.
+
+2) DOS là tightly-coupled system (Distributed OS) cho phép nhiều máy tính trong mạng hoạt động như 1 hệ thống duy nhất. Hệ điều hành này giúp các máy chia sẻ tài nguyên, phân phối công việc
+NOS là hệ điều hành mạng (loosely coupled system) dùng để quản lý hoạt động mạng của máy tính. Cung cấp các dịch vụ mạng như giao tiếp, chia sẻ tập tin. 
+2 cái này khác nhau ở chỗ DOS dùng quản lý hệ thống phân tán như phân phối task, chia sẻ và quản lý tài nguyên giữa nhiều máy. NOS chỉ chuyên dùng cho hệ phân tán là mạng internet, nó cung các tính năng qua mạng như chia sẻ tập tin, in ấn, giao tiếp cho 1 máy.
+Middleware hỗ trợ giao tiếp giữa các thành phần trong hệ phân tán giống NOS. Middware cung khả năng quản lý và truy xuất DB tương tự DOS giúp quản lý phân phối tài nguyên => tức nó thừa kế ưu điểm và chức năng của 2 hệ thống DOS và NOS luôn
+
+3) Đôi khi rất khó để che giấu sự xuất hiện lỗi và sự phục hồi lỗi trong hệ phân tán
+Vì cấu trúc phức tạp, mỗi thành phần có lỗi riêng nên việc theo dõi và quản lý lỗi cũng phức tạp. Lỗi có thể ở nhiều vị trí khác nhau, ở các thành phần khác nhau
+Giữa các thành phần có data k đồng nhất vì độ trễ, làm khó khăn trong việc tìm NN lỗi và đồng bộ hóa việc phục hồi lỗi ở các thành phần
+Việc che giấu lỗi và phục hồi lỗi phải thực hiện trong môi trường bảo mật cao để tránh kẻ tấn cộng biết thông tin về lỗi và khai thác. 
+
+4) K nên luôn giữ độ trong suốt ở mức cao nhất có thể 
+Vì chi phí, các biện pháp sao lưu dự phòng chẳng hạn sẽ phức tạp và cần chi phí đắt đỏ
+Ảnh hưởng đến hiệu suất vì mất tg đồng bộ hóa và kiểm soát lỗi làm giảm tốc độ xử lý
+Gây hạn chế về khả năng mở rộng vì sinh thêm nhiều quy tắc hạn chế hơn khi cần thay đổi, cập nhật hệ thống
+Lãng phí, nếu k thực sự cần mà cứ cố đạt mức cao nhất sẽ phí tài nguyên và giảm performance
+
+5) Open distribution system is a public system whose components can be provided by any providers/manufacturers.
+It offers services according to standard rules that describe the syntax and semantics of those services
+
+Tính mở giúp các thành phần được phát triển nhanh hơn, mở rộng tốt hơn nhờ sự giúp sức của cộng đồng. Đảm bảo tính minh bạch và bền vững, k còn phụ thuộc vào 1 NSX duy nhất. 
+
+6) Các kỹ thuật mở rộng hệ thống:
+Async communication
+Distribution tăng thêm nhiều máy vật lý or nâng cáp hệ thống cho các máy có sẵn
+Replicate tăng khả năng chịu lỗi
+Caching 
+Mô đun hóa từng thành phần, tách thành từng microservice dễ dàng thêm service mới hay loại bỏ 1 old service 
+Dùng cân bằng tải phân bố hệ thống chia đều tránh quá tải 
+
+-> Phần 2
+1) Giải pháp server và client ở xa do độ trễ
+Cache ở client lại để hạn chế phải gửi nh request
+Sử dụng CDN sẽ tự tìm máy chủ gần nhất về địa lý để gửi request
+Tạo nhiều server replica ở nhiều nơi và dùng load balacing để phân phối đến máy gần nhất or máy có khả năng xử lý tốt nhất
+Giảm kích thước dữ liệu, nén, tối ưu lượng data cần truyền để truyền nhanh hơn
+Dùng async để client làm việc khác, tránh phải chờ mới được làm gì tiếp
+
+2) Kiến trúc client server 3 tầng
+Tầng giao diện người dùng (Presentation Layer): Tầng này chịu trách nhiệm hiển thị giao diện người dùng và tương tác với người dùng. Nó bao gồm các thành phần như các trang web, ứng dụng di động hoặc giao diện đồ họa trên máy tính. Tầng này tập trung vào việc hiển thị thông tin cho người dùng và thu thập dữ liệu đầu vào từ họ.
+
+Tầng logic ứng dụng (Application Logic Layer): Tầng này chứa các logic và quy tắc xử lý ứng dụng. Nó xử lý dữ liệu nhận được từ tầng giao diện người dùng và thực hiện các tính toán, xử lý logic và các chức năng nghiệp vụ của ứng dụng. Tầng này là nơi xử lý các yêu cầu từ người dùng và tương tác với tầng dữ liệu để truy xuất và cập nhật dữ liệu.
+
+Tầng dữ liệu (Data Layer): Tầng này là nơi lưu trữ dữ liệu của hệ thống. Nó chịu trách nhiệm lưu trữ, truy xuất và quản lý dữ liệu từ các nguồn khác nhau như cơ sở dữ liệu, tệp tin, dịch vụ web, và các hệ thống khác. Tầng dữ liệu cung cấp các phương thức để tầng logic ứng dụng có thể truy xuất và cập nhật dữ liệu theo yêu cầu.
+
+Kiến trúc client-server 3 tầng giúp tách biệt rõ ràng giữa giao diện người dùng, logic ứng dụng và dữ liệu. Điều này giúp đơn giản hóa phát triển, bảo trì và mở rộng hệ thống. Nó cũng tạo điều kiện cho việc tái sử dụng và mở rộng các thành phần riêng lẻ trong hệ thống.
+=> xàm lol
+
+3) Vertical scaling: thêm CPU, RAM, ổ cứng => dễ thực hiện vì k yêu cầu xử lý phức tạp hơn mà chỉ cần nâng cấp -> bị hạn chế
+Hor: Thêm phiên bản mới, phân chia task, tăng số lượng máy chủ chạy song song => khó hơn vì phải xử lý phân chia tài nguyên cũng như đồng bộ dữ liệu, linh hoạt hơn, mở rộng có thể là vô hạn
+
+4) Routing phụ thuộc hình trạng mạng có nhược điểm:
+Mỗi node phải có thông tin topology toàn mạng, nếu lớn sẽ gây phí tài nguyên
+1 node mất kết nối or thay đổi hình trạng mạng thì thông tin bị sai lệch và phải update toàn bộ vói độ trễ lớn nếu mạng lớn
+Sức tải các node không đồng đều, chất lượng dịch vụ k được đảm bảo
+
+5) Kiểu đa tầng tuần tự có nhược điểm:
+Độ trễ chung cao vì tuần tự chứ k song song, phải chờ tầng dưới xong mới trả được tầng trên
+Các tầng xử lý k đồng đều, nếu 1 tầng phải xử lý quá lâu so với các tầng khác sẽ gây bottleneck tại tầng đó
+1 tầng bị lỗi sẽ ảnh hưởng toàn bộ hệ thống
+Khó mở rộng nếu nhiều tiến trình có sự phụ thuộc phức tạp, trao đổi thông tin trở nên khó khăn
+
+6) -> Chịu giải trong sách
+Đặc điểm của mạng CAN:
+Giải thuật định tuyến mạng CAN, mỗi node chỉ cần biết các node gần nó nhất và gửi nên đơn giản, dễ triển khai, k cần tính toán đường đi mà cứ gửi tới node gần nhất. Hạn chế là đường có thể k tối ưu, độ tin cậy thấp nếu crash lúc gửi phát thì chả biết gói tin đến đích chưa
+
+-> BT đề
+1) Hệ thống phân tán là tập hợp các máy tính độc lập có kết nối với nhau, cung ứng dịch vụ cho người sử dụng như 1 máy tính đơn duy nhất.
+2) Chord đương nhiên phi tập trung, có cấu trúc
+3) Khi xây dựng bộ thư viện hoàn toàn là user-level thread sẽ giúp:
+Tiết kiệm tài nguyên: vì tạo và hủy luồng k cần sự can thiệp sâu của hệ điều hành nữa mà ứng dụng tự xử lý sẽ hiệu quả hơn
+Chuyển context của luồng được thực hiện mà k cần switch từ user -> kernel -> đổi -> xong lại kernel -> user mất tg
+Khi gọi blocking system call trong thread sẽ k dừng hệ thống cả process mà chỉ dừng luồng đó thôi, các luồng khác vẫn ok
+4) RPC có 2 kiểu truyền tham số:
+1 là truyền giá trị thì 2 máy client và server có quy ước biểu diễn dữ liệu khác nhau rất khó
+2 là truyền tham biến (reference) thì 2 máy client server có 2 ko gian nhớ khác nhau. Giá trị tham biến trên máy server độc lập với client ở xa, nếu tham biến máy server đổi thì sai ngay nên k an toàn
+
+5) Forwarding pointer có nhược điểm là chuỗi tham số dài khi nó move khiến quá trình tìm location tốn kém; Các node trung gian phải lưu các con trỏ chuyển tiếp lâu nhất có thể; Khi 1 con trỏ tham chiếu trong chuỗi bị hỏng sẽ k thể tìm được thực thể đó.
+
+Khi 1 server stub không được trỏ đến bởi bất kỳ client stub nào thì nó có thể bị loại bỏ. Đó là 1 cải tiến để giảm tải cho hệ thống. Khi đó server k cần tồn tại trong hệ thống sẽ có thể loại bỏ để tiết kiệm bộ nhớ.
+
+TL:
+1) RPC là 1 mô hình middleware vì nó là lớp trung gian giữa ứng dụng và hệ thống phân tán. Nó ẩn sự phức tạp của việc giao tiếp giữa các thành phần phân tán bằng cách cung cấp 1 interface đồng nhất cho remote invocation và indirect communication. Các máy có thể dùng middleware RPC để gọi các phương thức từ xa ở máy chủ xa mà k cần cài đặt các chi tiết phức tạp.
+
+2) Hệ thống chord thực tế có 2 loại node là node rỗng và các node có data. Các node sẽ tổ chức thành vòng và succ(k) là node có số id nhỏ nhất lớn hơn k trong hệ thống. 
+Tức VD để tìm được succ(4) đầu tiên nó lưu bảng băm để tìm đến node 4 là node nào. Sau đó dùng hàm LookUp(4) để duyệt lần lượt các node có id >4, node nào có data chứ kp node rỗng thì chính là succ(4) cần tìm.
+
+Khi 1 node mới tham gia hệ thống, nó tạo 1 id duy nhất cho mình vào 1 node rỗng nào đó và connect với các node đã có trong hệ thống để gia nhập vào vòng theo đúng thứ tự. Nó update succ(k) của các node trước nó. Nó request để lưu lại thông tin về node lân cận sau nó. Nó cập nhập bảng bảng finger của mình để chứa thông tin về các node lân cận và địa chỉ. 
+Khi 1 node rời hệ thống, nó chuyển dữ liệu đang lưu sang node kế tiếp. Các node lân cận cập nhập bảng finger loại bỏ node đó khỏi hệ thống và update succ(k) của từng node trước đó luôn. Node đó giải phóng tài nguyên và ngừng hoạt động.
+=> Tức điểm nhấn là 1 node lưu bảng các node lân cận, succ(k) là node tồn tại kế tiếp, có 1 id riêng theo thứ tự trên vòng
+
+4) 
+a) Có tính nhân quả khi process a nhận VC từ process x thì VCx[x] = VCa[x] + 1 và VCx[k] <= VCa[k] với mọi k
+b) P2 và P3 đều cần chậm lại
+
+3) 
+Đa tiến trình có nhược điểm:
+Mỗi tiến trình cần bộ nhớ chính, bộ nhớ đệm cùng nhiều tài nguyên hệ thống khác. Khi có nhiều tiến trình thì việc phân chia rất tốn kém => tốn resource
+Mỗi khi chuyển đổi tiến trình, hệ điều hành cần switch context và giao tiếp qua các cơ chế IPC như pipe rất tốn thời gian => tốn tg
+Khi sử dụng pipeline, k có cơ chế tự động đồng bộ giữa các tiến trình. Khi số lượng tiến trình tăng, việc trao đổi trở nên phức tạp rất khó mở rộng. Khó debug vì message được truyền qua lại nhiều process khác nhau => phức tạp, khó debug
+Đa luồng giúp khắc phục nhược điểm vì nó cho phép chạy cùng 1 process nhưng chia sẻ chung không gian bộ nhớ và tài nguyên, giảm sự phức tạp mà việc trao đổi, quản lý thông tin giữa các thread dễ dàng hơn.
+
+
+
+# Other:
+-> Multicast là một trong ba loại giao thức truyền phát dữ liệu trên mạng, bao gồm unicast, broadcast và multicast. Trong multicast, một nguồn gửi dữ liệu có thể gửi thông tin đến một nhóm người nhận đồng thời. Các thiết bị nhận dữ liệu chỉ nhận và xử lý các gói tin quan tâm đến nhóm mà chúng đã tham gia, trong khi các gói tin khác sẽ không được xử lý.
+Trong mô hình multicast, nguồn dữ liệu gửi một bản sao duy nhất của dữ liệu đến một địa chỉ đích multicast. Các thiết bị mạng trên đường truyền sẽ nhân bản và phân phối dữ liệu này đến các thiết bị nhận nằm trong nhóm multicast.
+Địa chỉ IP được sử dụng để định danh nhóm multicast. Địa chỉ IP multicast thuộc vào một phạm vi địa chỉ đặc biệt từ 224.0.0.0 đến 239.255.255.255. Một số địa chỉ IP multicast đã được chuẩn hóa để sử dụng cho các mục đích cụ thể như giao thức routing (như OSPF, RIP), streaming đa phương tiện (như IPTV) và các ứng dụng nhóm khác.
+Multicast cho phép truyền dữ liệu hiệu quả và tiết kiệm băng thông, vì dữ liệu chỉ cần được gửi một lần từ nguồn và được phân phối đến tất cả các thiết bị nhận cùng một lúc trong nhóm chú kp mỗi ng là 1 request độc lập. Nó thích hợp cho các ứng dụng như video trực tiếp, streaming đa phương tiện, hội nghị truyền hình, và các ứng dụng nhóm khác nơi dữ liệu cần được gửi đến nhiều người nhận cùng một lúc.
+-> RPC stands for Remote Procedure Call, which is a protocol used for communication between different processes or systems. It allows a program to execute a function or procedure on a remote system as if it were executing locally.
+On the other hand, calling an API is a way to request data or functionality from a server, like exchange message with server. The server then responds with the requested data or performs the requested functionality.
+=> Thực tế nó khá giống nhau
+
+-> Tx k thể revert mọi thứ nếu đã tác động ra thế giới ngoài, VD output ra màn hình r chẳng hạn
+
+Nested tx cần coordinator để đảm bảo 1 trong số các nested tx abort, mọi subtx cũng bị abort theo
+
+CPU bound (hay còn được gọi là CPU-bound) là một thuật ngữ được sử dụng để mô tả tình trạng khi hoạt động của một quá trình hoặc chương trình bị hạn chế bởi tốc độ xử lý của CPU, chứ không phải bởi các yếu tố khác như đọc/ghi dữ liệu từ ổ đĩa, mạng, hoặc bởi tài nguyên khác.
+
+

@@ -1,0 +1,157 @@
+Thêm bt:
+1) Hệ điều hành mạng (NOS) đảm bảo tính mở nhưng không đảm bảo tính trong suốt:
+Tính mở của NOS đề cập đến khả năng tương tác và tích hợp với các thiết bị và ứng dụng khác trong mạng. NOS cho phép các thiết bị và ứng dụng khác truy cập và sử dụng các tài nguyên mạng một cách linh hoạt.
+Tuy nhiên, NOS không đảm bảo tính trong suốt, tức không đảm bảo sự nhất quán và đồng bộ giữa các thành phần trong mạng. Có thể xảy ra tình trạng không đồng bộ hoặc xung đột dữ liệu khi các thiết bị và ứng dụng sử dụng NOS tương tác với nhau.
+
+2) Edge server system là hệ thống có kiến trúc hỗn hợp
+Tức là nó kết hợp sự tập trung và không tập trung các thành phần. Trong kiến trúc này, một số máy chủ được tập trung ở trung tâm để xử lý các tác vụ lớn hoặc quan trọng hơn, trong khi các máy chủ biên được triển khai gần người dùng cuối hoặc tại các điểm gần các thiết bị và nguồn dữ liệu để giảm thiểu độ trễ và tăng tốc độ xử lý.
+
+3) Kiến trúc luồng cho mỗi yêu cầu (thread-per-request) trong server đa luồng có những ưu điểm sau:
+b. Không cần có hàng đợi: Khi một yêu cầu mới đến, một luồng mới sẽ được tạo ra để xử lý yêu cầu đó ngay lập tức, không cần phải chờ đợi.
+d. Tiến trình server không bao giờ bị treo: Mỗi yêu cầu được xử lý trên một luồng riêng biệt, nên nếu một yêu cầu gặp sự cố, nó sẽ không ảnh hưởng đến các yêu cầu khác.
+
+Bên cạnh đó, overhead lớn và băng thông k tận dụng được tối đa do tốn chi phí hiệu suất cho việc tạo và hủy nhiều luồng.
+
+4) Giao tiếp đồng bộ và bất đồng bộ khác nhau như sau: Với giao tiếp đồng bộ thì cả thao tác gửi và nhận đều là các thao tác dừng. Còn với giao tiếp không đồng bộ thì thao tác gửi không là thao tác dừng. Khi một bên gửi thông tin, nó không cần phải dừng lại và chờ cho đến khi thông tin được nhận. Nó có thể tiếp tục thực hiện các thao tác khác. Bên nhận có thể nhận thông tin vào bất kỳ thời điểm nào, không nhất thiết phải ngay lập tức. Điều này cho phép cả hai bên hoạt động một cách độc lập và linh hoạt hơn.
+
+5) Một thông điệp được gửi đến 1 địa chỉ IP và một cổng cục bộ thì sẽ được nhận bởi duy nhất 1 tiến trình mà socket của nó gắn với cổng và địa chỉ IP đó.
+Quá trình trao đổi thông tin giữa các tiến trình là việc gửi thông điệp giữa một socket của một tiến trình và một socket của một tiến trình khác.
+
+6) Trong ngôn ngữ lập trình Java, lớp DatagramSocket được dùng để khởi tạo 1 socket cho giao thức UDP, còn ServerSocket cho TCP server, còn Socket cho TCP client
+
+7) Đặc tính của RMI (Remote Method Invocation) được coi là "kém" hơn RPC (Remote Procedure Call) là tính mở. Vì:
+- RMI là một công nghệ của Java, nó hoạt động tốt nhất trong môi trường Java và không mở cửa rộng cho các ngôn ngữ lập trình khác. Điều này giới hạn khả năng tương tác giữa các ứng dụng được viết bằng các ngôn ngữ khác nhau.
+- Trái lại, RPC được thiết kế để hỗ trợ nhiều ngôn ngữ lập trình khác nhau, làm cho nó linh hoạt hơn và có thể tương tác với nhiều hệ thống khác nhau.
+
+8) Các thành phần trong hệ phân tán trao đổi message bằng gì để đảm bảo tính openness
+Interface và RPC. Interface cho phép các component tương tác vói nhau mà k cần biết implement chi tiết. RPC giúp các thành phần call thực hiện ở các nơi khác nhau với ngôn ngữ khác nhau. Nhiều nơi tạo ra services và cung interface ra ngoài là được => Nếu chỉ chọn 1 thì chọn interface.
+Procedure và function cũng được nhưng k liên quan đến tính openness
+
+9) Vấn đề idempotent trong kiến trúc client-server liên quan đến: Quyết định xem có cho phép client gửi lại thông điệp request hay không. Vì:
+- Idempotency là tính chất mà việc thực hiện một hoạt động nhiều lần có cùng kết quả như thực hiện một lần. Trong kiến trúc client-server, một yêu cầu được coi là idempotent nếu client có thể gửi lại yêu cầu đó mà không làm thay đổi kết quả cuối cùng.
+- Ví dụ, một yêu cầu GET trong HTTP là idempotent vì việc gửi lại yêu cầu không làm thay đổi trạng thái của server. Tuy nhiên, một yêu cầu POST thường không phải là idempotent, vì việc gửi lại yêu cầu có thể tạo ra một tài nguyên mới trên server.
+- Việc xử lý idempotency quan trọng trong việc xử lý lỗi và đảm bảo tính nhất quán trong kiến trúc client-server, đặc biệt khi có sự cố mạng hoặc server không phản hồi thì có thể xem xét gửi lại
+
+10) Phương pháp trao đổi thông tin hướng thông điệp bền vững (persistent message-oriented communication) được áp dụng phù hợp cho: Email. Vì:
+- Phương pháp trao đổi thông tin hướng thông điệp bền vững (persistent message-oriented communication) là phương pháp mà trong đó thông điệp được lưu trữ cho đến khi nó được xử lý hoàn toàn. Điều này đảm bảo rằng thông điệp không bị mất ngay cả khi có sự cố xảy ra.
+- Email là một ví dụ điển hình của phương pháp này. Khi một email được gửi, nó được lưu trữ trên server cho đến khi người nhận tải nó xuống. Nếu có sự cố xảy ra (ví dụ: mất kết nối mạng), email vẫn còn trên server và có thể được tải xuống sau khi sự cố được giải quyết.
+Dịch vụ email thường thực hiện trao đổi thông tin theo cách bất đồng bộ, người gửi có thể gửi thư đi và người nhận có thể nhận thư vào bất kỳ thời điểm nào. Email không yêu cầu việc truyền tải dữ liệu liên tục như video streaming, và phương pháp trao đổi thông tin hướng thông điệp bền vững thích hợp cho việc này. Thông điệp có thể được gửi đi mà không cần đảm bảo người nhận phải trực tiếp truy cập vào mạng như HTTP và duyệt qua nhiều gói dữ liệu liên tục.
+
+11) Trong trao đổi thông tin hướng dòng, việc thực thi QoS là tác động vào tầng nào của hệ thống mạng => Tầng mạng(IP)
+Tầng mạng (IP) trong hệ thống mạng chịu trách nhiệm về việc định tuyến (routing) và chuyển tiếp dữ liệu giữa các nút mạng. Tầng mạng sẽ định rõ các thông số QoS như băng thông, độ trễ, độ trễ biến đổi và tỷ lệ mất gói tin cho từng dịch vụ hoặc ứng dụng. 
+Tầng mạng (IP) được coi là tầng chịu trách nhiệm chính về việc triển khai QoS vì nó có kiến trúc hướng dòng dữ liệu (datagram-oriented) và có khả năng điều khiển định tuyến và chất lượng trên mạng. Tầng mạng sẽ quyết định xem các gói tin ưu tiên (ví dụ: video, âm thanh) sẽ được xử lý và ưu tiên trước, giúp cải thiện chất lượng dịch vụ cho các ứng dụng nhạy cảm với độ trễ và mất gói tin.
+Hướng dòng dữ liệu ở đây là quản lý data flow thôi thì tầng mạng quản lý hết còn gì.
+
+12) Đặc điểm trao đổi thông tin hướng thông điệp bền vững: 
+Hỗ trợ khả năng lưu trữ trung gian cho thông điệp
+Sử dụng cơ chế liên kết lỏng
+Mỗi ứng dụng sẽ có 1 hàng đợi riêng để cho các ứng dụng khác gửi thông điệp vào
+=> Nó k yêu cầu độ trễ thấp, VD gửi mail delay chút cũng được.
+
+13) Giao thức điển hình của phương pháp quảng bá (broadcasting) là ARP
+ARP được sử dụng để chuyển đổi địa chỉ IP thành địa chỉ MAC (Media Access Control) của các thiết bị trong mạng. Khi một thiết bị muốn giao tiếp với một thiết bị khác trong cùng một mạng, nó sẽ sử dụng ARP để tìm địa chỉ MAC tương ứng của thiết bị đó. ARP thực hiện phương pháp quảng bá bằng cách gửi các yêu cầu địa chỉ MAC đến tất cả các thiết bị trong mạng hoặc mạng con để tìm địa chỉ MAC của thiết bị cần liên lạc.
+Các giao thức IP (query từ DNS), TCP và HTTP phải biết port và ip sẵn thì k có bước quảng bá đó
+
+14) Home Agent có nhược điểm lớn là nó luôn phải gửi đến node Home trước tiên để lấy các node khác. Nếu node Home ở rất xa vẫn phải query tới đó thôi. 
+1 nhược điểm khác là chuỗi dài dần theo tg khi entity move nhiều khiến việc tìm kiếm lâu hơn.
+
+Thực tế, tên của Home Agent được băm và tạo 1 khóa đưa vào hệ thống.
+
+15) Tính mở trong các hệ thống phân tán là các hệ thống đảm bảo các thiết bị được sản xuất bởi các nhà sản xuất khác nhau đều có thể kết nối và hoạt động
+
+16) CAN và Chord đều là hệ thống phân tán có cấu trúc
+
+17) Dùng LWP có ưu điểm:
+1. Tiết kiệm tài nguyên: Tiến trình nhẹ sử dụng ít tài nguyên hệ thống hơn so với tiến trình truyền thống. Do không cần tạo ra một bộ nhớ và bảng bảo vệ riêng, tiến trình nhẹ tiết kiệm bộ nhớ và tài nguyên hệ thống.
+2. Tốc độ thực thi nhanh: Tiến trình nhẹ được tạo ra và chuyển đổi giữa các luồng nhanh chóng hơn so với tiến trình truyền thống. Điều này giúp tăng tốc độ thực thi và giảm độ trễ trong ứng dụng.
+3. Tương tác dễ dàng: Tiến trình nhẹ chia sẻ cùng không gian địa chỉ với tiến trình gốc, cho phép chúng tương tác dễ dàng và truyền thông qua việc chia sẻ biến và cấu trúc dữ liệu.
+4. Độ tin cậy cao: Vì tiến trình nhẹ chia sẻ không gian địa chỉ với tiến trình gốc, nên việc quản lý và đồng bộ hóa dữ liệu giữa các luồng trở nên dễ dàng và đáng tin cậy hơn.
+5. Đa nhiệm: Tiến trình nhẹ cho phép thực thi đa nhiệm, tức là có thể thực hiện nhiều luồng cùng một lúc. Điều này giúp tăng hiệu suất và khả năng đáp ứng của ứng dụng.
+
+18) Khi merge 2 KG tên với nhau với nhau thì directory table của từng node sẽ k update lại dù nó sinh ra 1 KG namespace mới lớn bằng tổng 2 KG cũ cộng lại
+
+19) Grouping operation: Sequential và causal consistency cần qt tới từng hành động read/write nhỏ một. Sẽ phức tạp cho ứng dụng phân tán. Giải pháp là nhóm lại thành critical section.
+Acq(Lx) bắt đầu thực hiện thao tác trên biến x
+Thực hiện 100 thao tác trên x thoải mái
+Rel(Lx) thoát khỏi critical section thì chỉ kết quả cuối cùng của x mới được update và propage đi, giúp tối ưu. 
+
+20) Chord thì các nút màu trắng là nút khóa, các nút màu đen là các nút quản lý khóa, chứa bảng băm để tìm khóa
+CAN thì các nút màu đen ở trung tâm các vùng là các nút quản lý khóa, mỗi khóa là 1 tọa độ bất kỳ trên mặt phẳng tọa độ và các nút mà đen sẽ quản lý các khóa có tọa độ nằm trong vùng của nó
+Khi 1 nút mới vào mạng CAN sẽ được cấp 1 tọa độ trong vùng, sau đó đàm phán với nút quản lý của vùng đó để chia mặt phẳng vùng đó ra 1 phần cho nút mới vào này quản lý
+
+21) request reply là đồng bộ, client phải block khi gọi cho đến khi nhận
+Request reply protocol - RPC - HTTP
+Do đó nếu server lỗi thực hiện mãi k xong, client sẽ chờ vô hạn => nên ta thg set timeout đó
+Tuy nhiên RPC cũng có nhiều mô hình khác như nowait, callbackrpc, batch rpc thay vì có mỗi synchronous rpc như bth
+
+22) Một hệ thống áp dụng thuật toán tập trung (Centralized algorithm) cho các giải thuật đồng bộ hóa loại trừ lẫn nhau (mutual exclusion), biết rằng hệ thống có n tiến trình, trong đó có 1 tiến trình là Coordinator. Hỏi số thông điệp cần thiết phải sử dụng để cho k tiến trình vào sử dụng tài nguyên là bao nhiêu? (giả sử cả quá trình không xảy ra lỗi và không có 2 yêu cầu nào được gửi đến Coordinator cùng 1 thời điểm)
+=> Trong một hệ thống sử dụng thuật toán tập trung cho các giải thuật đồng bộ hóa loại trừ lẫn nhau, mỗi tiến trình muốn truy cập vào tài nguyên sẽ phải gửi một yêu cầu đến Coordinator. Sau khi nhận được yêu cầu, Coordinator sẽ quyết định xem tiến trình nào được phép truy cập tài nguyên và gửi lại thông điệp cho tiến trình đó.
+Vì vậy, cho mỗi tiến trình muốn truy cập tài nguyên, chúng ta cần ít nhất 2 thông điệp: một thông điệp từ tiến trình đến Coordinator và một thông điệp từ Coordinator trở lại tiến trình.
+Do đó, nếu có k tiến trình muốn truy cập tài nguyên, số thông điệp cần thiết sẽ là 2k.
+
+23) Một hệ thống có 16 tiến trình (P0-P15) và áp dụng giải thuật bầu chọn Bully để chọn ra 1 tiến trình làm Coordinator. Giả sử có 3 tiến trình bị lỗi dừng hoạt động là P13, P14, P15. Giả sử P6 bắt đầu phát động bầu chọn. Hỏi hệ thống phải mất bao nhiêu thông điệp để bầu chọn ra được Coordinator là P12? (chú ý: tính luôn cả 12 thông điệp quảng bá cuối cùng của P12 cho P0-P11 để báo là mình đã được chọn)
+=> 75
+Vì cơ chế bully là 1 tiến trình nhận sẽ gửi thông điệp tới mọi tiến trình có id lớn hơn nó, sau đó tự phát động bầu chọn
+Đầu tiên P6 gửi đến P7-P15 được 9 -> nhận về 6 => P6 thất bại trong việc trở thành coordinator vì nhận được hồi đáp của Process id lớn hơn
+Các Process khác khi nhận gói tin từ P6 khởi tạo sẽ tự phát động bầu chọn gửi gói tin đến id lớn hơn:
+P7 gửi 8 nhận 5, P8 gửi 7 nhận 4, P9 gửi 6 nhận 3, P10 gửi 5 nhận 2, P11 gửi 4 nhận 1, P12 gửi 3 nhận 0
+=> Tổng là 63 gói. Cuối cùng P12 k nhận được hồi đáp của process nào id lớn hơn nên tự claim là coordinator và gửi 1 lần nữa cho tất cả các node thấp hơn để báo nó là coordinator
+
+24) A đúng vì: UDP không duy trì kết nối liên tục như TCP, nên không cần tạo socket mới với mỗi yêu cầu kết nối. Thay vào đó, một socket UDP có thể được sử dụng để gửi và nhận dữ liệu từ nhiều nguồn và đích khác nhau thông qua cổng logic (port) được chỉ định. Cơ chế multiplexing trong UDP cho phép nhiều ứng dụng sử dụng cùng một socket để truyền và nhận dữ liệu đồng thời.
+B sai vì: Trong TCP, cơ chế multiplexing cho phép nhiều kết nối mạng được quản lý và xử lý trên cùng một socket. Điều này được thực hiện bằng cách sử dụng các cổng (port) để phân biệt các kết nối khác nhau trên cùng một socket. Cơ chế multiplexing chỉ cho phép nhiều kết nối được quản lý trên cùng một socket, vẫn phải khởi tạo kết nối khi có yêu cầu connect như bth
+C sai vì: Cả Socket UDP và Socket TCP đều sử dụng cổng logic (port) để xác định các ứng dụng và dịch vụ trên mạng. Cổng logic là một số nguyên trong phạm vi từ 0 đến 65535 được gắn liền với mỗi giao thức (UDP hoặc TCP) và địa chỉ IP để xác định mục tiêu của dữ liệu.
+Cổng vật lý (physical port) thường được sử dụng trong ngữ cảnh của mạng vật lý, như cổng Ethernet trên một thiết bị mạng. Nó không liên quan trực tiếp đến việc xác định ứng dụng hoặc dịch vụ trên mạng.
+
+25) Vì rabbitMQ là message queue, nó lưu message lại cho đến khi người dùng chịu nhận thì thôi nên rất bền vững. Thông điệp tạm thời là kiểu REST API. Luồng thì là kiểu video audio cơ
+
+26) Trong một hệ thống sử dụng thuật toán phân tán cho các giải thuật đồng bộ hóa loại trừ lẫn nhau, mỗi tiến trình muốn truy cập vào tài nguyên sẽ phải gửi một yêu cầu đến tất cả các tiến trình khác trong hệ thống. Sau khi nhận được yêu cầu, mỗi tiến trình sẽ gửi lại thông điệp xác nhận. 
+Khi 1 tiến trình truy cập sẽ cần gửi tới mọi tiến trình khác là n-1, xong họ gửi trả thành 2n-2. Mà có k tiến trình cần truy cập tài nguyên nên k tiến trình gửi tin đi nên thành k(2n-2)
+
+27) Vì DNS và WWW là các hệ thống phân tán lớn nên truyền dữ liệu cập nhật sẽ tốn băng thông và thời gian và cũng vì bảo mật
+Còn truyền thao tác cập nhật là chỉ truyền các thao tác thay đổi phần dữ liệu cần thiết. Nhưng sẽ phức tạp và phải đảm bảo các hệ thống khác nhau phải hiểu thaot ác đó.
+
+28) Nên nhớ mỗi 1 bản ghi có nhiều data, mỗi data có 1 bản sao primary và bản sao secondary. giao thức này ghi vào bản sao chính, rồi bản sao chính sẽ phân phối đến các secondary copy sau đó chú k ghi hết vào mọi bản sao sẽ tốn time
+
+29) Middleware có cung tính trong suốt, nhờ đó loại bỏ nhược điểm của NOS
+Nó loại bỏ nhược điểm của hệ thống phi tập trung (khó tìm data) và tập trung(nút thắt cổ chai) thôi
+
+30) 2 loại locking: 
+Finelocking là nhiều khóa nhỏ, coarse locking là 1 khóa lớn
+
+31) Vì hardlink trỏ thẳng tới file gốc, softlink chứa đường dẫn sẽ dẫn tới file gốc
+
+32) Conit lớn sẽ dễ k đồng nhất, conit nhỏ sẽ phải có nhiều conit hơn và khó quản lý
+
+33) Cách tìm khóa trong hệ thống chord
+Xác định khóa là tìm node "quản lý" có giá trị lớn hơn or bằng key. Tìm các node trong bảng sao cho giá trị nhỏ hơn hoặc bằng key cho đến node cuối cùng
+
+34) Trong phương pháp update database theo quorum:
+Nw>N/2 để tránh mâu thuẫn khi nhiều node cùng ghi thì cái nào mới nhất phải chiếm đa số hơn 1 nửa
+Nw + Nr > N để tránh mâu thuẫn đọc ghi
+
+35) Công thức tính độ trễ thời gian trong giao thức NFT: nó giả định là thời gian truyền tin đi và về là như nhau, nếu khác, công thức sẽ sai
+
+36) fixed primary == remote write protocol
+Khi 1 máy muốn liên kết với máy khác trong mạng LAN thì sẽ quảng bá gói tin APR để tìm địa chỉ MAC của máy cần tìm trong mạng
+
+37) Berkeley sẽ có 3n lần chuyển đi:
+master gửi đi time của mình -> client gửi về độ lệch -> master gửi update mọi client khác
+
+38) Đồng bộ hóa đồng hồ trong mạng không dây:
+Để tính độ lệch thời gian 2 đồng hồ p và q, chúng gửi tin cho nhau M lần và lấy trung bình hiệu thời gian các lần là độ lệch. 
+Đồng bộ hóa đồng hồ logic là đồng bộ về thứ tự thôi. 
+Lamport dùng cho đồng bộ cả 2 loại
+
+39) Distributed alg khi truy cập tài nguyên. 1 tiến trình sẽ gửi message tới mọi tiến trình khác. Nó chỉ được phép truy cập nếu nhận lại mọi response ok từ mọi tiến trình khác. Hàng đợi lúc này nằm ở mỗi nút, mỗi nút đều hoạt động như coordinator.
+Nếu muốn access mà nhận được request access từ máy khác thì chúng ss timestamp khi nhận request nếu cũng muốn dùng tài nguyên
+
+40) Token Ring thì các máy được liên kết logic theo 1 vòng, còn liên kết vật lý có thể k theo vòng nhé. Chỉ cần tạo liên kết logic bằng phần mềm theo vòng là được
+Token ring trong cơ chế election: 1 nút phát động sẽ truyền đi 1 data chứa id node của mình. Các node khác nhân được check nếu data chưa có id của nó tức chưa đi đủ 1 vòng thì thêm id nó vào và chuyển đi, còn nếu có id của mình rồi thì lấy id lớn nhất làm coordinator và chuyển tiếp. nếu 1 node bị hỏng thì data có cơ chế chuyển luôn sang node sau node hỏng đó
+
+41) Bầu chọn mạng k dây: 1 nút gửi tới các node khác, các nút khác nhận được sẽ gửi trả thông điệp báo hiệu node đó đã từng nhân được data từ 1 node nào trước đó hay đây là data đầu tiên nhận được. Nếu 1 nút nhận được toàn thông điệp kiểu 1, thì node đó tự biết mình là node lá của cây.
+3 lần truyền xây cây -> báo cáo ngược -> quảng bá đi node coordinator
+
+Trong mạng cỡ lớn dùng 1 token là k đủ, gọi là bầu chọn superpeer.
+VD n nút có k token bầu ra k superpeer => token dịch chuyển theo nguyen tắc cộng vector hình học. Vector tổng đi qua điểm nào thì bầu điểm đó là superpeer
+
+
